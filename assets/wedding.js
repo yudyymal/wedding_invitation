@@ -158,8 +158,8 @@
     return wrap;
   }
 
-  function textField(labelText, value, onInput, placeholder) {
-    var wrap = el('div', { class: 'rsvp-field' });
+  function textField(labelText, value, onInput, placeholder, extraClass) {
+    var wrap = el('div', { class: 'rsvp-field' + (extraClass ? ' ' + extraClass : '') });
     if (labelText) wrap.appendChild(el('label', { class: 'rsvp-label', text: labelText }));
     var input = el('input', { type: 'text', class: 'rsvp-input', value: value || '', placeholder: placeholder || '' });
     input.addEventListener('input', function () { onInput(input.value); });
@@ -193,10 +193,10 @@
       function renderDrinkExtras() {
         drinkOtherBox.innerHTML = '';
         if (data.drink.indexOf('Другое') > -1) {
-          drinkOtherBox.appendChild(textField(null, data.drink_other, function (v) { data.drink_other = v; }, 'Ваш вариант'));
+          drinkOtherBox.appendChild(textField(null, data.drink_other, function (v) { data.drink_other = v; }, 'Ваш вариант', 'rsvp-subfield'));
         }
         if (data.drink.indexOf('Не пью алкоголь') > -1) {
-          var prefWrap = el('div', { class: 'rsvp-field' });
+          var prefWrap = el('div', { class: 'rsvp-field rsvp-subfield' });
           prefWrap.appendChild(el('label', { class: 'rsvp-label', text: 'Есть особые предпочтения?' }));
           var prefBtns = radioGroup('nap_' + personId, [{ value: '1', label: 'Да' }, { value: '0', label: 'Нет' }], data.no_alcohol_pref, function (v) {
             data.no_alcohol_pref = v; renderDrinkExtras();
@@ -204,7 +204,7 @@
           prefWrap.appendChild(prefBtns);
           drinkOtherBox.appendChild(prefWrap);
           if (data.no_alcohol_pref === '1') {
-            drinkOtherBox.appendChild(textField(null, data.no_alcohol_pref_text, function (v) { data.no_alcohol_pref_text = v; }, 'Ваши предпочтения'));
+            drinkOtherBox.appendChild(textField(null, data.no_alcohol_pref_text, function (v) { data.no_alcohol_pref_text = v; }, 'Ваши предпочтения', 'rsvp-subfield'));
           }
         }
       }
@@ -220,7 +220,7 @@
       function renderAllergyExtra() {
         allergyTextBox.innerHTML = '';
         if (data.allergy === '1') {
-          allergyTextBox.appendChild(textField(null, data.allergy_text, function (v) { data.allergy_text = v; }, 'На что аллергия'));
+          allergyTextBox.appendChild(textField(null, data.allergy_text, function (v) { data.allergy_text = v; }, 'На что аллергия', 'rsvp-subfield'));
         }
       }
       allergyWrap.appendChild(radioGroup('allergy_' + personId, [{ value: '1', label: 'Да' }, { value: '0', label: 'Нет' }], data.allergy, function (v) { data.allergy = v; renderAllergyExtra(); }));
@@ -250,7 +250,7 @@
       function renderSleep() {
         sleepBox.innerHTML = '';
         if (data.stay_second_day === '1') {
-          var sleepWrap = el('div', { class: 'rsvp-field' });
+          var sleepWrap = el('div', { class: 'rsvp-field rsvp-subfield' });
           sleepWrap.appendChild(el('label', { class: 'rsvp-label', text: 'Есть ли у вас место переночевать?' }));
           sleepWrap.appendChild(radioGroup('sleep_' + personId, [
             { value: 'yes', label: 'Да' },
@@ -272,7 +272,7 @@
       function renderTransFromOpt() {
         transFromOptBox.innerHTML = '';
         if (data.transport_from === '1') {
-          var optWrap = el('div', { class: 'rsvp-field' });
+          var optWrap = el('div', { class: 'rsvp-field rsvp-subfield' });
           optWrap.appendChild(radioGroup('transfromopt_' + personId, [
             { value: 'city_together', label: 'Можно добраться до города вместе' },
             { value: 'taxi', label: 'Лучше такси до дома' },
@@ -418,17 +418,22 @@
   function initTimelineMarker() {
     var container = qs('#wed5-timeline');
     var marker = qs('#wed5-marker');
-    var track = container ? container.querySelector('.wed5-track') : null;
-    if (!container || !marker || !track) return;
+    var dots = qsa('.wed5-dot', container || document);
+    if (!container || !marker || !dots.length) return;
     var ticking = false;
     function update() {
       ticking = false;
-      var trackRect = track.getBoundingClientRect();
+      var containerTop = container.getBoundingClientRect().top;
       var vh = window.innerHeight || document.documentElement.clientHeight;
       var anchor = vh * 0.5;
-      var progress = (anchor - trackRect.top) / trackRect.height;
-      progress = Math.max(0, Math.min(1, progress));
-      marker.style.top = (8 + progress * (trackRect.height - 16)) + 'px';
+      var anchorInContainer = anchor - containerTop;
+      var activeIndex = 0;
+      for (var i = 0; i < dots.length; i++) {
+        var dotTop = dots[i].getBoundingClientRect().top - containerTop;
+        if (dotTop <= anchorInContainer) activeIndex = i;
+      }
+      var targetTop = dots[activeIndex].getBoundingClientRect().top - containerTop;
+      marker.style.top = targetTop + 'px';
     }
     function onScroll() {
       if (!ticking) {
