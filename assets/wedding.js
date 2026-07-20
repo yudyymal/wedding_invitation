@@ -12,7 +12,7 @@
   'use strict';
 
   /* ======================= 1. НАСТРОЙКИ ======================= */
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwdRcwfkZ4lwJkQyXa6obnN4jIWlpoSqc5bCPGkehP3fe2CGfaAe1aWI0Z2_f0HBk/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxELHq6HYpNNLcCz4BrfUFNx4AintXr-mN0dK_jg0qrBM8axV-5fEmmZ4fdflEaVoBGmQ/exec';
 
   var DEFAULT_HELLO = 'Дорогие друзья';
 
